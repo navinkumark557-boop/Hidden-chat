@@ -8,7 +8,7 @@ app.secret_key = "secret123"
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-ROOM_CODE = "PLC2026"
+ROOM_CODE = "Nnnnnnnn"
 messages = []
 
 LOGIN_HTML = """

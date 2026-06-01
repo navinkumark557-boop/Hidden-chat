@@ -20,7 +20,7 @@ CHAT_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="60">
+<meta http-equiv="refresh" content=1">
 <title>Private Chat</title>
 </head>
 <body>

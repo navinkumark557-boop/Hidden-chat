@@ -5,10 +5,9 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 
 ROOM_CODE = "PLC2026"
-
 messages = []
 
-HTML_LOGIN = """
+LOGIN_HTML = """
 <h2>Private Chat Room</h2>
 <form method="post">
 <input name="username" placeholder="Your Name" required><br><br>
@@ -17,20 +16,20 @@ HTML_LOGIN = """
 </form>
 """
 
-HTML_CHAT = """
+CHAT_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="2">
-<title>Chat Room</title>
+<meta http-equiv="refresh" content="60">
+<title>Private Chat</title>
 </head>
 <body>
 
 <h2>Private Chat Room</h2>
 
-<div style="height:350px;border:1px solid black;overflow:auto;padding:10px;">
+<div style="height:300px;border:1px solid black;overflow:auto;padding:10px;">
 {% for msg in messages %}
-<p>{{msg}}</p>
+<p>{{ msg }}</p>
 {% endfor %}
 </div>
 
@@ -55,7 +54,7 @@ def login():
             return redirect("/chat")
         return "Wrong Room Code"
 
-    return HTML_LOGIN
+    return render_template_string(LOGIN_HTML)
 
 @app.route("/chat", methods=["GET", "POST"])
 def chat():
@@ -77,10 +76,7 @@ def chat():
 
     display = [f"{m['user']}: {m['text']}" for m in messages]
 
-    return render_template_string(
-        HTML_CHAT,
-        messages=display
-    )
+    return render_template_string(CHAT_HTML, messages=display)
 
 @app.route("/clear", methods=["POST"])
 def clear():

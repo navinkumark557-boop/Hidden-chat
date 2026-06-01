@@ -4,6 +4,7 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 
 ROOM_CODE = "PLC2026"
+messages = []
 
 LOGIN_PAGE = """
 <h2>Private Chat Room</h2>
@@ -17,19 +18,19 @@ LOGIN_PAGE = """
 CHAT_PAGE = """
 <h2>Private Chat Room</h2>
 
-<div id="chat" style="height:300px;border:1px solid black;overflow:auto;padding:10px;"></div>
+<div style="height:300px;border:1px solid black;overflow:auto;padding:10px;">
+{% for msg in messages %}
+<p><b>{{msg}}</b></p>
+{% endfor %}
+</div>
 
-<input id="msg" placeholder="Message">
-<button onclick="sendMsg()">Send</button>
+<form method="post">
+<input name="message" placeholder="Message" required>
+<button type="submit">Send</button>
+</form>
 
-<script>
-function sendMsg() {
-    let msg = document.getElementById("msg").value;
-    let box = document.getElementById("chat");
-    box.innerHTML += "<p><b>You:</b> " + msg + "</p>";
-    document.getElementById("msg").value = "";
-}
-</script>
+<br>
+<a href="/refresh">Refresh Messages</a>
 """
 
 @app.route("/", methods=["GET", "POST"])
@@ -42,11 +43,20 @@ def login():
 
     return render_template_string(LOGIN_PAGE)
 
-@app.route("/chat")
+@app.route("/chat", methods=["GET", "POST"])
 def chat():
     if "user" not in session:
         return redirect("/")
-    return render_template_string(CHAT_PAGE)
+
+    if request.method == "POST":
+        msg = request.form["message"]
+        messages.append(f"{session['user']}: {msg}")
+
+    return render_template_string(CHAT_PAGE, messages=messages)
+
+@app.route("/refresh")
+def refresh():
+    return redirect("/chat")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

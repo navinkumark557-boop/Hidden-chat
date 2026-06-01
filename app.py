@@ -1,12 +1,14 @@
 from flask import Flask, request, redirect, session, render_template_string
+import time
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
 ROOM_CODE = "PLC2026"
+
 messages = []
 
-LOGIN_PAGE = """
+HTML_LOGIN = """
 <h2>Private Chat Room</h2>
 <form method="post">
 <input name="username" placeholder="Your Name" required><br><br>
@@ -15,12 +17,20 @@ LOGIN_PAGE = """
 </form>
 """
 
-CHAT_PAGE = """
+HTML_CHAT = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="2">
+<title>Chat Room</title>
+</head>
+<body>
+
 <h2>Private Chat Room</h2>
 
-<div style="height:300px;border:1px solid black;overflow:auto;padding:10px;">
+<div style="height:350px;border:1px solid black;overflow:auto;padding:10px;">
 {% for msg in messages %}
-<p><b>{{msg}}</b></p>
+<p>{{msg}}</p>
 {% endfor %}
 </div>
 
@@ -29,8 +39,12 @@ CHAT_PAGE = """
 <button type="submit">Send</button>
 </form>
 
-<br>
-<a href="/refresh">Refresh Messages</a>
+<form action="/clear" method="post">
+<button type="submit">Clear Chat</button>
+</form>
+
+</body>
+</html>
 """
 
 @app.route("/", methods=["GET", "POST"])
@@ -41,27 +55,38 @@ def login():
             return redirect("/chat")
         return "Wrong Room Code"
 
-    return render_template_string(LOGIN_PAGE)
+    return HTML_LOGIN
 
 @app.route("/chat", methods=["GET", "POST"])
 def chat():
     if "user" not in session:
         return redirect("/")
 
+    now = time.time()
+
+    global messages
+    messages = [m for m in messages if now - m["time"] < 30]
+
     if request.method == "POST":
-        msg = request.form["message"]
-        messages.append(f"{session['user']}: {msg}")
+        text = request.form["message"]
+        messages.append({
+            "user": session["user"],
+            "text": text,
+            "time": now
+        })
 
-    return render_template_string(CHAT_PAGE, messages=messages)
+    display = [f"{m['user']}: {m['text']}" for m in messages]
 
-@app.route("/refresh")
-def refresh():
+    return render_template_string(
+        HTML_CHAT,
+        messages=display
+    )
+
+@app.route("/clear", methods=["POST"])
+def clear():
+    global messages
+    messages = []
     return redirect("/chat")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-<script>
-setInterval(function(){
-    location.reload();
-}, 3000);
-</script>
